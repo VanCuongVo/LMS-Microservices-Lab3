@@ -11,8 +11,6 @@ namespace IdentityService.API.Middleware
     {
         private readonly RequestDelegate _next;
 
-
-
         public RequestLoggingMiddleware(RequestDelegate next)
         {
 

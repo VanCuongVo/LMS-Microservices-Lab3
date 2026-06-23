@@ -86,10 +86,6 @@ namespace IdentityService.Application.Features
             {
                 throw new Exception("Refresh token expired");
             }
-            if (existingToken.ExpiresAt <= DateTime.UtcNow)
-            {
-                throw new Exception("Refresh token expired");
-            }
             var user = existingToken.User;
             var accessToken = await _jwtService.GenerateTokenAsync(user);
             var newRefreshToken = _jwtService.GenerateRefreshToken();
