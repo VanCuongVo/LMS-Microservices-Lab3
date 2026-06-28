@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("StudentService.Persistence")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a0d5500249a18e9ccf4f9792414aa93b8cf52e36")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+812949531290faaa8b49133e3893ca585c13cd91")]
 [assembly: System.Reflection.AssemblyProductAttribute("StudentService.Persistence")]
 [assembly: System.Reflection.AssemblyTitleAttribute("StudentService.Persistence")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
