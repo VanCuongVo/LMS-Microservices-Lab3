@@ -1,0 +1,12 @@
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\bin\Debug\net8.0\CourseService.Domain.deps.json
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\bin\Debug\net8.0\CourseService.Domain.dll
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\bin\Debug\net8.0\CourseService.Domain.pdb
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\obj\Debug\net8.0\CourseService.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\obj\Debug\net8.0\CourseService.Domain.AssemblyInfoInputs.cache
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\obj\Debug\net8.0\CourseService.Domain.AssemblyInfo.cs
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\obj\Debug\net8.0\CourseService.Domain.csproj.CoreCompileInputs.cache
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\obj\Debug\net8.0\CourseService.Domain.sourcelink.json
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\obj\Debug\net8.0\CourseService.Domain.dll
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\obj\Debug\net8.0\refint\CourseService.Domain.dll
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\obj\Debug\net8.0\CourseService.Domain.pdb
+D:\Summer2026\PRN232\lab\LMS-Microservices\CourseService\CourseService.Domain\obj\Debug\net8.0\ref\CourseService.Domain.dll
