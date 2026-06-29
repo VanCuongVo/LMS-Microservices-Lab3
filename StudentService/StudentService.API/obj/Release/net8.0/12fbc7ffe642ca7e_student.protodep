@@ -1,0 +1,2 @@
+obj\Release\net8.0\Protos/Student.cs \
+obj\Release\net8.0\Protos/StudentGrpc.cs: Protos/student.proto

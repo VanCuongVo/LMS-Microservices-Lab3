@@ -14,6 +14,7 @@ namespace StudentService.API.Config
             services.AddScoped<IStudentRepository, StudentRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IStudentService, Application.Features.StudentService>();
+            services.AddGrpc();
 
             return services;
         }

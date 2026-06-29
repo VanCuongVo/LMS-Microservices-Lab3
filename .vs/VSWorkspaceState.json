@@ -1,9 +1,10 @@
 {
   "ExpandedNodes": [
+    "",
+    "\\CourseService",
     "\\CourseService\\CourseService.API",
-    "\\CourseService\\CourseService.API\\Config",
-    "\\IdentityService\\IdentityService.Persistence",
-    "\\IdentityService\\IdentityService.Persistence\\Data"
+    "\\CourseService\\CourseService.API\\Config"
   ],
+  "SelectedNode": "\\CourseService\\CourseService.API\\Config\\DatabaseConfiguration.cs",
   "PreviewInSolutionExplorer": false
 }

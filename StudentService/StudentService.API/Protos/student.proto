@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option csharp_namespace = "StudentService.Grpc";
+
+package student;
+
+service StudentGrpc {
+  rpc GetStudentById (GetStudentRequest) returns (StudentResponse);
+  rpc GetStudentsByIds (GetStudentsByIdsRequest) returns (StudentsBatchResponse);
+  rpc SearchStudents (SearchStudentsRequest) returns (StudentsBatchResponse);
+}
+
+message GetStudentRequest {
+  int32 student_id = 1;
+}
+
+message GetStudentsByIdsRequest {
+  repeated int32 student_ids = 1;
+}
+
+message SearchStudentsRequest {
+  string search_term = 1;
+}
+
+message StudentResponse {
+  int32 student_id = 1;
+  string full_name = 2;
+  string email = 3;
+  string phone_number = 4;
+  int32 age = 5;
+  string student_code = 6;
+}
+
+message StudentsBatchResponse {
+  repeated StudentResponse students = 1;
+}

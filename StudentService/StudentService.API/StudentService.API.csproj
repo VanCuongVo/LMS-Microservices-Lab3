@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -21,6 +22,10 @@
     <ProjectReference Include="..\StudentService.Application\StudentService.Application.csproj" />
     <ProjectReference Include="..\StudentService.Persistence\StudentService.Persistence.csproj" />
     <ProjectReference Include="..\StudentService.Infrastructure\StudentService.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\student.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

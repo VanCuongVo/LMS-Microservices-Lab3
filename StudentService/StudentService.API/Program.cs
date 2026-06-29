@@ -1,4 +1,5 @@
 using StudentService.API.Config;
+using StudentService.API.Services;
 using StudentService.Persistence.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,12 +19,12 @@ var app = builder.Build();
 await DatabaseSeeder.SeedAsync(app.Services);
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || true) // always enable swagger in this lab
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseRouting();
+app.MapGrpcService<StudentGrpcService>();
 app.UseAuthentication();
 app.UseAuthorization();
 

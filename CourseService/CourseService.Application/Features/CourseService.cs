@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using CourseService.Application.DTOs.Request;
 using CourseService.Application.DTOs.Response;
 using CourseService.Application.Extensions;
@@ -10,16 +5,19 @@ using CourseService.Application.Interfaces;
 using CourseService.Application.Utility;
 using CourseService.Domain.Entities;
 using CourseService.Domain.IUnitOfWork;
+using Microsoft.EntityFrameworkCore;
 
 namespace CourseService.Application.Features
 {
     public class CourseService : ICourseService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IStudentServiceClient _studentServiceClient;
 
-        public CourseService(IUnitOfWork unitOfWork)
+        public CourseService(IUnitOfWork unitOfWork, IStudentServiceClient studentServiceClient)
         {
             _unitOfWork = unitOfWork;
+            _studentServiceClient = studentServiceClient;
         }
 
         public async Task<ApiResponse<CourseResponse>> CreateAsync(CreateCourseRequest request)
@@ -89,26 +87,33 @@ namespace CourseService.Application.Features
                     .Distinct()
                     .ToList();
 
-                // Populate mock students (HTTP Client disconnected)
+                var students = await _studentServiceClient.GetStudentsByIdsAsync(studentIds);
+                var studentDict = students?.ToDictionary(s => s.StudentId) ?? new Dictionary<int, StudentInEnrollmentResponse>();
+
                 foreach (var courseRes in response)
                 {
                     var dbCourse = courses.FirstOrDefault(c => c.Courseid == courseRes.CourseId);
                     if (dbCourse?.Enrollments != null)
                     {
                         courseRes.Students = dbCourse.Enrollments
-                            .Select(e => new StudentInCourseResponse
+                            .Select(e =>
                             {
-                                StudentId = e.Studentid,
-                                FullName = $"Mock Student {e.Studentid}",
-                                Email = $"mock{e.Studentid}@example.com"
+                                // Thử tìm thông tin học sinh trong kết quả trả về từ gRPC
+                                studentDict.TryGetValue(e.Studentid, out var student);
+
+                                return new StudentInCourseResponse
+                                {
+                                    StudentId = e.Studentid,
+                                    // Sử dụng tên thật từ gRPC, nếu không tìm thấy thì hiển thị Unknown Student
+                                    FullName = student?.FullName ?? $"Unknown Student {e.Studentid}",
+                                    Email = student?.Email ?? string.Empty
+                                };
                             })
                             .ToList();
                     }
                 }
             }
-
             var shapedData = response.SelectFields(query.Fields);
-
             return new ApiResponse<object>
             {
                 success = true,
@@ -138,15 +143,19 @@ namespace CourseService.Application.Features
 
             var response = course.ToCourseResponse();
 
-            // Populate Student details in course response (HTTP Client disconnected)
-            response.Students = course.Enrollments
-                .Select(e => new StudentInCourseResponse
+            var studentIds = course.Enrollments.Select(e => e.Studentid).Distinct().ToList();
+            var students = await _studentServiceClient.GetStudentsByIdsAsync(studentIds);
+            var studentDict = students?.ToDictionary(s => s.StudentId) ?? new Dictionary<int, StudentInEnrollmentResponse>();
+            response.Students = course.Enrollments.Select(e =>
+            {
+                studentDict.TryGetValue(e.Studentid, out var student);
+                return new StudentInCourseResponse
                 {
                     StudentId = e.Studentid,
-                    FullName = $"Mock Student {e.Studentid}",
-                    Email = $"mock{e.Studentid}@example.com"
-                })
-                .ToList();
+                    FullName = student?.FullName ?? $"Unknown Student {e.Studentid}",
+                    Email = student?.Email ?? string.Empty
+                };
+            }).ToList();
 
             return response;
         }
@@ -162,15 +171,25 @@ namespace CourseService.Application.Features
             var enrollments = await enrollmentsQuery.Sort(query).Paging(query).ToListAsync();
             var response = enrollments.Select(x => x.ToCourseEnrollmentResponse()).ToList();
 
-            // Populate Student details inside enrollments (HTTP Client disconnected)
+            var studentIds = response.Select(e => e.StudentId).Distinct().ToList();
+            var students = await _studentServiceClient.GetStudentsByIdsAsync(studentIds);
+            var studentDict = students?.ToDictionary(s => s.StudentId) ?? new Dictionary<int, StudentInEnrollmentResponse>();
             foreach (var enrollRes in response)
             {
-                enrollRes.Student = new StudentInEnrollmentResponse
+                if (studentDict.TryGetValue(enrollRes.StudentId, out var student))
                 {
-                    StudentId = enrollRes.StudentId,
-                    FullName = $"Mock Student {enrollRes.StudentId}",
-                    Email = $"mock{enrollRes.StudentId}@example.com"
-                };
+                    enrollRes.Student = student;
+                }
+                else
+                {
+                    // Trường hợp không tìm thấy sinh viên trong hệ thống StudentService
+                    enrollRes.Student = new StudentInEnrollmentResponse
+                    {
+                        StudentId = enrollRes.StudentId,
+                        FullName = $"Unknown Student {enrollRes.StudentId}",
+                        Email = string.Empty
+                    };
+                }
             }
 
             var shapedData = response.SelectFields(query.Fields);
@@ -224,16 +243,19 @@ namespace CourseService.Application.Features
             }
 
             var response = courseFromDb.ToCourseResponse();
-
-            // Populate Student details (HTTP Client disconnected)
-            response.Students = courseFromDb.Enrollments
-                .Select(e => new StudentInCourseResponse
-                {
-                    StudentId = e.Studentid,
-                    FullName = $"Mock Student {e.Studentid}",
-                    Email = $"mock{e.Studentid}@example.com"
-                })
-                .ToList();
+            var studentIds = course.Enrollments.Select(e => e.Studentid).Distinct().ToList();
+            var students = await _studentServiceClient.GetStudentsByIdsAsync(studentIds);
+            var studentDict = students?.ToDictionary(s => s.StudentId) ?? new Dictionary<int, StudentInEnrollmentResponse>();
+            response.Students = course.Enrollments.Select(e =>
+           {
+               studentDict.TryGetValue(e.Studentid, out var student);
+               return new StudentInCourseResponse
+               {
+                   StudentId = e.Studentid,
+                   FullName = student?.FullName ?? $"Unknown Student {e.Studentid}",
+                   Email = student?.Email ?? string.Empty
+               };
+           }).ToList();
 
             return new ApiResponse<CourseResponse>
             {

@@ -1,15 +1,17 @@
-using Microsoft.Extensions.DependencyInjection;
 using CourseService.Application.Features;
 using CourseService.Application.Interfaces;
 using CourseService.Domain.IRepository;
 using CourseService.Domain.IUnitOfWork;
+using CourseService.Infrastructure.Services;
 using CourseService.Persistence.Repository;
+using Microsoft.Extensions.Configuration;
+using StudentService.Grpc;
 
 namespace CourseService.API.Config
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
+        public static IServiceCollection AddDependencyInjection(this IServiceCollection services, IConfiguration configuration)
         {
             // Register repositories
             services.AddScoped<ICourseRepository, CourseRepository>();
@@ -25,6 +27,12 @@ namespace CourseService.API.Config
             services.AddScoped<IEnrollmentService, EnrollmentService>();
             services.AddScoped<ISemestersService, SemestersService>();
             services.AddScoped<ISubjectService, SubjectService>();
+
+            services.AddGrpcClient<StudentGrpc.StudentGrpcClient>(o =>
+            {
+                o.Address = new Uri(configuration["Services:StudentServiceUrl"] ?? "http://localhost:5051");
+            });
+            services.AddScoped<IStudentServiceClient, StudentGrpcClient>();
 
             return services;
         }

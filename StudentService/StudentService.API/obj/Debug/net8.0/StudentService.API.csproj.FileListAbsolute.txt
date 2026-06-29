@@ -121,3 +121,10 @@ D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\obj
 D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\obj\Debug\net8.0\StudentService.API.pdb
 D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\obj\Debug\net8.0\StudentService.API.genruntimeconfig.cache
 D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\obj\Debug\net8.0\ref\StudentService.API.dll
+D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\bin\Debug\net8.0\Google.Protobuf.dll
+D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\bin\Debug\net8.0\Grpc.AspNetCore.Server.dll
+D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\bin\Debug\net8.0\Grpc.AspNetCore.Server.ClientFactory.dll
+D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\bin\Debug\net8.0\Grpc.Core.Api.dll
+D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\bin\Debug\net8.0\Grpc.Net.Client.dll
+D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\bin\Debug\net8.0\Grpc.Net.ClientFactory.dll
+D:\Summer2026\PRN232\lab\LMS-Microservices\StudentService\StudentService.API\bin\Debug\net8.0\Grpc.Net.Common.dll
