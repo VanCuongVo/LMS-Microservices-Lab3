@@ -3,7 +3,6 @@ using StudentService.Application.Features;
 using StudentService.Application.Interfaces;
 using StudentService.Domain.IRepository;
 using StudentService.Domain.IUnitOfWork;
-using StudentService.Infrastructure.Services;
 using StudentService.Persistence.Repository;
 
 namespace StudentService.API.Config
@@ -15,9 +14,6 @@ namespace StudentService.API.Config
             services.AddScoped<IStudentRepository, StudentRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IStudentService, Application.Features.StudentService>();
-
-            // Register HttpClient for CourseService cross-service calls
-            services.AddHttpClient<ICourseServiceClient, CourseServiceClient>();
 
             return services;
         }

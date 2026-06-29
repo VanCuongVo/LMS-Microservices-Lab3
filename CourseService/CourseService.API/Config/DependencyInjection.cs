@@ -3,7 +3,6 @@ using CourseService.Application.Features;
 using CourseService.Application.Interfaces;
 using CourseService.Domain.IRepository;
 using CourseService.Domain.IUnitOfWork;
-using CourseService.Infrastructure.Services;
 using CourseService.Persistence.Repository;
 
 namespace CourseService.API.Config
@@ -26,9 +25,6 @@ namespace CourseService.API.Config
             services.AddScoped<IEnrollmentService, EnrollmentService>();
             services.AddScoped<ISemestersService, SemestersService>();
             services.AddScoped<ISubjectService, SubjectService>();
-
-            // Register HttpClient for StudentService cross-service calls
-            services.AddHttpClient<IStudentServiceClient, StudentServiceClient>();
 
             return services;
         }

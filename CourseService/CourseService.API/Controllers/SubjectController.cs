@@ -10,7 +10,7 @@ using CourseService.Application.Interfaces;
 namespace CourseService.API.Controllers
 {
     [ApiController]
-    [Route("api/v1/subjects")]
+    [Route("api/subjects")]
     public class SubjectController : ControllerBase
     {
         private readonly ISubjectService _subjectService;

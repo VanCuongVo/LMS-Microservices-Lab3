@@ -16,12 +16,10 @@ namespace StudentService.Application.Features
     public class StudentService : IStudentService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICourseServiceClient _courseServiceClient;
 
-        public StudentService(IUnitOfWork unitOfWork, ICourseServiceClient courseServiceClient)
+        public StudentService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _courseServiceClient = courseServiceClient;
         }
 
         public async Task<ApiResponse<StudentResponse>> CreateAsync(CreateStudentRequest request)
@@ -86,19 +84,10 @@ namespace StudentService.Application.Features
             // Expand enrollments if requested
             if (!string.IsNullOrEmpty(query.Expand) && query.Expand.Split(',').Any(x => x.Trim().Equals("enrollment", StringComparison.OrdinalIgnoreCase)))
             {
-                var tasks = response.Select(async student =>
+                foreach (var student in response)
                 {
-                    try
-                    {
-                        var enrollments = await _courseServiceClient.GetEnrollmentsByStudentIdAsync(student.StudentId);
-                        student.Enrollments = enrollments;
-                    }
-                    catch
-                    {
-                        student.Enrollments = new List<EnrollmentResponse>();
-                    }
-                });
-                await Task.WhenAll(tasks);
+                    student.Enrollments = new List<EnrollmentResponse>();
+                }
             }
 
             var shapeData = response.SelectFields(query.Fields);
@@ -127,15 +116,7 @@ namespace StudentService.Application.Features
             }
 
             var response = student.ToStudentResponse();
-            try
-            {
-                var enrollments = await _courseServiceClient.GetEnrollmentsByStudentIdAsync(id);
-                response.Enrollments = enrollments;
-            }
-            catch
-            {
-                response.Enrollments = new List<EnrollmentResponse>();
-            }
+            response.Enrollments = new List<EnrollmentResponse>();
 
             return response;
         }
@@ -163,15 +144,7 @@ namespace StudentService.Application.Features
             await _unitOfWork.SaveChangesAsync();
 
             var response = student.ToStudentResponse();
-            try
-            {
-                var enrollments = await _courseServiceClient.GetEnrollmentsByStudentIdAsync(id);
-                response.Enrollments = enrollments;
-            }
-            catch
-            {
-                response.Enrollments = new List<EnrollmentResponse>();
-            }
+            response.Enrollments = new List<EnrollmentResponse>();
 
             return new ApiResponse<StudentResponse>
             {

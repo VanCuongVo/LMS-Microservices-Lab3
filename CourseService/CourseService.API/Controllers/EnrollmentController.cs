@@ -9,7 +9,7 @@ using CourseService.Application.Interfaces;
 namespace CourseService.API.Controllers
 {
     [ApiController]
-    [Route("api/v1/enrollments")]
+    [Route("api/enrollments")]
     public class EnrollmentController : ControllerBase
     {
         private readonly IEnrollmentService _enrollmentService;

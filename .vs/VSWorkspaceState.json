@@ -1,0 +1,9 @@
+{
+  "ExpandedNodes": [
+    "\\CourseService\\CourseService.API",
+    "\\CourseService\\CourseService.API\\Config",
+    "\\IdentityService\\IdentityService.Persistence",
+    "\\IdentityService\\IdentityService.Persistence\\Data"
+  ],
+  "PreviewInSolutionExplorer": false
+}

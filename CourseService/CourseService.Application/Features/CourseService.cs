@@ -16,12 +16,10 @@ namespace CourseService.Application.Features
     public class CourseService : ICourseService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IStudentServiceClient _studentServiceClient;
 
-        public CourseService(IUnitOfWork unitOfWork, IStudentServiceClient studentServiceClient)
+        public CourseService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _studentServiceClient = studentServiceClient;
         }
 
         public async Task<ApiResponse<CourseResponse>> CreateAsync(CreateCourseRequest request)
@@ -91,34 +89,20 @@ namespace CourseService.Application.Features
                     .Distinct()
                     .ToList();
 
-                if (studentIds.Any())
+                // Populate mock students (HTTP Client disconnected)
+                foreach (var courseRes in response)
                 {
-                    try
+                    var dbCourse = courses.FirstOrDefault(c => c.Courseid == courseRes.CourseId);
+                    if (dbCourse?.Enrollments != null)
                     {
-                        var students = await _studentServiceClient.GetStudentsByIdsAsync(studentIds);
-                        var studentMap = students.ToDictionary(s => s.StudentId);
-
-                        foreach (var courseRes in response)
-                        {
-                            var dbCourse = courses.FirstOrDefault(c => c.Courseid == courseRes.CourseId);
-                            if (dbCourse?.Enrollments != null)
+                        courseRes.Students = dbCourse.Enrollments
+                            .Select(e => new StudentInCourseResponse
                             {
-                                courseRes.Students = dbCourse.Enrollments
-                                    .Select(e => studentMap.TryGetValue(e.Studentid, out var student) ? new StudentInCourseResponse
-                                    {
-                                        StudentId = student.StudentId,
-                                        FullName = student.FullName,
-                                        Email = student.Email
-                                    } : null)
-                                    .Where(s => s != null)
-                                    .Select(s => s!)
-                                    .ToList();
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error fetching student details for courses: {ex.Message}");
+                                StudentId = e.Studentid,
+                                FullName = $"Mock Student {e.Studentid}",
+                                Email = $"mock{e.Studentid}@example.com"
+                            })
+                            .ToList();
                     }
                 }
             }
@@ -154,31 +138,15 @@ namespace CourseService.Application.Features
 
             var response = course.ToCourseResponse();
 
-            // Populate Student details in course response
-            var studentIds = course.Enrollments.Select(x => x.Studentid).Distinct().ToList();
-            if (studentIds.Any())
-            {
-                try
+            // Populate Student details in course response (HTTP Client disconnected)
+            response.Students = course.Enrollments
+                .Select(e => new StudentInCourseResponse
                 {
-                    var students = await _studentServiceClient.GetStudentsByIdsAsync(studentIds);
-                    var studentMap = students.ToDictionary(s => s.StudentId);
-
-                    response.Students = course.Enrollments
-                        .Select(e => studentMap.TryGetValue(e.Studentid, out var student) ? new StudentInCourseResponse
-                        {
-                            StudentId = student.StudentId,
-                            FullName = student.FullName,
-                            Email = student.Email
-                        } : null)
-                        .Where(s => s != null)
-                        .Select(s => s!)
-                        .ToList();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error fetching student details: {ex.Message}");
-                }
-            }
+                    StudentId = e.Studentid,
+                    FullName = $"Mock Student {e.Studentid}",
+                    Email = $"mock{e.Studentid}@example.com"
+                })
+                .ToList();
 
             return response;
         }
@@ -194,27 +162,15 @@ namespace CourseService.Application.Features
             var enrollments = await enrollmentsQuery.Sort(query).Paging(query).ToListAsync();
             var response = enrollments.Select(x => x.ToCourseEnrollmentResponse()).ToList();
 
-            // Populate Student details inside enrollments
-            var studentIds = enrollments.Select(x => x.Studentid).Distinct().ToList();
-            if (studentIds.Any())
+            // Populate Student details inside enrollments (HTTP Client disconnected)
+            foreach (var enrollRes in response)
             {
-                try
+                enrollRes.Student = new StudentInEnrollmentResponse
                 {
-                    var students = await _studentServiceClient.GetStudentsByIdsAsync(studentIds);
-                    var studentMap = students.ToDictionary(s => s.StudentId);
-
-                    foreach (var enrollRes in response)
-                    {
-                        if (studentMap.TryGetValue(enrollRes.StudentId, out var student))
-                        {
-                            enrollRes.Student = student;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error fetching student details: {ex.Message}");
-                }
+                    StudentId = enrollRes.StudentId,
+                    FullName = $"Mock Student {enrollRes.StudentId}",
+                    Email = $"mock{enrollRes.StudentId}@example.com"
+                };
             }
 
             var shapedData = response.SelectFields(query.Fields);
@@ -269,31 +225,15 @@ namespace CourseService.Application.Features
 
             var response = courseFromDb.ToCourseResponse();
 
-            // Populate Student details
-            var studentIds = courseFromDb.Enrollments.Select(x => x.Studentid).Distinct().ToList();
-            if (studentIds.Any())
-            {
-                try
+            // Populate Student details (HTTP Client disconnected)
+            response.Students = courseFromDb.Enrollments
+                .Select(e => new StudentInCourseResponse
                 {
-                    var students = await _studentServiceClient.GetStudentsByIdsAsync(studentIds);
-                    var studentMap = students.ToDictionary(s => s.StudentId);
-
-                    response.Students = courseFromDb.Enrollments
-                        .Select(e => studentMap.TryGetValue(e.Studentid, out var student) ? new StudentInCourseResponse
-                        {
-                            StudentId = student.StudentId,
-                            FullName = student.FullName,
-                            Email = student.Email
-                        } : null)
-                        .Where(s => s != null)
-                        .Select(s => s!)
-                        .ToList();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error fetching student details: {ex.Message}");
-                }
-            }
+                    StudentId = e.Studentid,
+                    FullName = $"Mock Student {e.Studentid}",
+                    Email = $"mock{e.Studentid}@example.com"
+                })
+                .ToList();
 
             return new ApiResponse<CourseResponse>
             {

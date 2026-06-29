@@ -10,7 +10,7 @@ using StudentService.Application.Interfaces;
 namespace StudentService.API.Controllers
 {
     [ApiController]
-    [Route("api/v1/students")]
+    [Route("api/students")]
     public class StudentController : ControllerBase
     {
         private readonly IStudentService _studentService;

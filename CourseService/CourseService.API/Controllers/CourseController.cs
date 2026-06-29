@@ -10,7 +10,7 @@ using CourseService.Application.Interfaces;
 namespace CourseService.API.Controllers
 {
     [ApiController]
-    [Route("api/v1/courses")]
+    [Route("api/courses")]
     public class CourseController : ControllerBase
     {
         private readonly ICourseService _courseService;
