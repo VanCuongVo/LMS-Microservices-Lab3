@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CourseService.Application.DTOs.Request;
 using CourseService.Application.DTOs.Response;
 using CourseService.Application.Extensions;
@@ -29,6 +25,14 @@ namespace CourseService.Application.Features
         {
 
             var student = await _studentServiceClient.GetStudentByIdAsync(request.StudentId);
+            if (student == null)
+            {
+                return new ApiResponse<EnrollmentResponse>
+                {
+                    success = false,
+                    message = $"Student with id {request.StudentId} not found"
+                };
+            }
 
             // Verify course exists
             var course = await _unitOfWork.Courses.GetByIdAsync(request.CourseId);
@@ -74,38 +78,26 @@ namespace CourseService.Application.Features
 
         public async Task<ApiResponse<object>> GetAllAsync(QueryParameters query)
         {
-            List<int>? matchingStudentIds = null;
-
-            // Fetch matching student IDs if searching
-            if (!string.IsNullOrEmpty(query.Search))
-            {
-                // HTTP Client disconnected - searching disabled
-                matchingStudentIds = new List<int>();
-            }
-
             var enrollmentQuery = _unitOfWork.Enrollments.GetQueryable()
                 .Include(x => x.Course)
-                .Search(query, matchingStudentIds)
+                .Search(query)
                 .Expand(query);
 
             var totalItems = await enrollmentQuery.CountAsync();
             var enrollments = await enrollmentQuery.Sort(query).Paging(query).ToListAsync();
             var response = enrollments.ToEnrollmentResponseList();
 
-
-
-            // Populate Student details (HTTP Client disconnected - populating mock student details)
-
             foreach (var enrollRes in response)
             {
                 var enrollEntity = enrollments.FirstOrDefault(e => e.Enrollmentid == enrollRes.EnrollmentId);
-                if (enrollEntity != null)
+                var student = await _studentServiceClient.GetStudentByIdAsync(enrollEntity.Studentid);
+                if (student != null)
                 {
                     enrollRes.Student = new StudentInEnrollmentResponse
                     {
-                        StudentId = enrollEntity.Studentid,
-                        FullName = $"Mock Student {enrollEntity.Studentid}",
-                        Email = $"mock{enrollEntity.Studentid}@example.com"
+                        StudentId = student.StudentId,
+                        FullName = student.FullName,
+                        Email = student.Email
                     };
                 }
             }
@@ -139,14 +131,17 @@ namespace CourseService.Application.Features
             }
 
             var response = enrollment.ToEnrollmentResponse();
+            var student = await _studentServiceClient.GetStudentByIdAsync(enrollment.Studentid);
 
-            response.Student = new StudentInEnrollmentResponse
+            if (student != null)
             {
-                StudentId = enrollment.Studentid,
-                FullName = $"Mock Student {enrollment.Studentid}",
-                Email = $"mock{enrollment.Studentid}@example.com"
-            };
-
+                response.Student = new StudentInEnrollmentResponse
+                {
+                    StudentId = student.StudentId,
+                    FullName = student.FullName,
+                    Email = student.Email
+                };
+            }
             return response;
         }
 
@@ -163,13 +158,17 @@ namespace CourseService.Application.Features
                 };
             }
 
-            // Verify student exists in StudentService (HTTP Client disconnected - mocking student check)
-            var student = new StudentInEnrollmentResponse
+            // Verify student exists in StudentService 
+            var student = await _studentServiceClient.GetStudentByIdAsync(request.StudentId);
+            if (student == null)
             {
-                StudentId = request.StudentId,
-                FullName = $"Mock Student {request.StudentId}",
-                Email = "mock@example.com"
-            };
+                return new ApiResponse<EnrollmentResponse?>
+                {
+                    success = false,
+                    message = $"Student with id {request.StudentId} not found",
+                    Data = null
+                };
+            }
 
             // Verify course exists
             var course = await _unitOfWork.Courses.GetByIdAsync(request.CourseId);
@@ -196,7 +195,12 @@ namespace CourseService.Application.Features
                 .FirstAsync(x => x.Enrollmentid == id);
 
             var response = enrollmentFromDb.ToEnrollmentResponse();
-            response.Student = student;
+            response.Student = new StudentInEnrollmentResponse
+            {
+                StudentId = student.StudentId,
+                FullName = student.FullName,
+                Email = student.Email
+            };
 
             return new ApiResponse<EnrollmentResponse?>
             {
