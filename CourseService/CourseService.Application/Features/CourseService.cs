@@ -243,10 +243,10 @@ namespace CourseService.Application.Features
             }
 
             var response = courseFromDb.ToCourseResponse();
-            var studentIds = course.Enrollments.Select(e => e.Studentid).Distinct().ToList();
+            var studentIds = courseFromDb.Enrollments.Select(e => e.Studentid).Distinct().ToList();
             var students = await _studentServiceClient.GetStudentsByIdsAsync(studentIds);
             var studentDict = students?.ToDictionary(s => s.StudentId) ?? new Dictionary<int, StudentInEnrollmentResponse>();
-            response.Students = course.Enrollments.Select(e =>
+            response.Students = courseFromDb.Enrollments.Select(e =>
            {
                studentDict.TryGetValue(e.Studentid, out var student);
                return new StudentInCourseResponse

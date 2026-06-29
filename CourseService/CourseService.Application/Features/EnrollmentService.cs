@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using CourseService.Application.DTOs.Request;
 using CourseService.Application.DTOs.Response;
 using CourseService.Application.Extensions;
@@ -10,27 +9,26 @@ using CourseService.Application.Interfaces;
 using CourseService.Application.Utility;
 using CourseService.Domain.Entities;
 using CourseService.Domain.IUnitOfWork;
+using Microsoft.EntityFrameworkCore;
 
 namespace CourseService.Application.Features
 {
     public class EnrollmentService : IEnrollmentService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IStudentServiceClient _studentServiceClient;
 
-        public EnrollmentService(IUnitOfWork unitOfWork)
+
+        public EnrollmentService(IUnitOfWork unitOfWork, IStudentServiceClient studentServiceClient)
         {
             _unitOfWork = unitOfWork;
+            _studentServiceClient = studentServiceClient;
         }
 
         public async Task<ApiResponse<EnrollmentResponse>> CreateAsync(CreateEnrollmentRequest request)
         {
-            // Verify student exists in StudentService (HTTP Client disconnected - mocking student check)
-            var student = new StudentInEnrollmentResponse
-            {
-                StudentId = request.StudentId,
-                FullName = $"Mock Student {request.StudentId}",
-                Email = "mock@example.com"
-            };
+
+            var student = await _studentServiceClient.GetStudentByIdAsync(request.StudentId);
 
             // Verify course exists
             var course = await _unitOfWork.Courses.GetByIdAsync(request.CourseId);
@@ -59,8 +57,13 @@ namespace CourseService.Application.Features
                 .FirstAsync(x => x.Enrollmentid == enrollment.Enrollmentid);
 
             var response = enrollmentFromDb.ToEnrollmentResponse();
-            response.Student = student;
 
+            response.Student = new StudentInEnrollmentResponse
+            {
+                StudentId = student.StudentId,
+                FullName = student.FullName,
+                Email = student.Email
+            };
             return new ApiResponse<EnrollmentResponse>
             {
                 success = true,
@@ -89,7 +92,10 @@ namespace CourseService.Application.Features
             var enrollments = await enrollmentQuery.Sort(query).Paging(query).ToListAsync();
             var response = enrollments.ToEnrollmentResponseList();
 
+
+
             // Populate Student details (HTTP Client disconnected - populating mock student details)
+
             foreach (var enrollRes in response)
             {
                 var enrollEntity = enrollments.FirstOrDefault(e => e.Enrollmentid == enrollRes.EnrollmentId);

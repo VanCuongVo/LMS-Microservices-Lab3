@@ -30,7 +30,14 @@ namespace CourseService.API.Config
 
             services.AddGrpcClient<StudentGrpc.StudentGrpcClient>(o =>
             {
-                o.Address = new Uri(configuration["Services:StudentServiceUrl"] ?? "http://localhost:5051");
+                o.Address = new Uri(configuration["Services:StudentServiceUrl"] ?? "https://localhost:7051");
+            })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler();
+                handler.ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                return handler;
             });
             services.AddScoped<IStudentServiceClient, StudentGrpcClient>();
 

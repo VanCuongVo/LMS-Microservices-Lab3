@@ -3,8 +3,9 @@
     "",
     "\\CourseService",
     "\\CourseService\\CourseService.API",
-    "\\CourseService\\CourseService.API\\Config"
+    "\\CourseService\\CourseService.API\\Config",
+    "\\StudentService"
   ],
-  "SelectedNode": "\\CourseService\\CourseService.API\\Config\\DatabaseConfiguration.cs",
+  "SelectedNode": "\\StudentService\\StudentService.sln",
   "PreviewInSolutionExplorer": false
 }
