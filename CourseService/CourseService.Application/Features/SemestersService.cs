@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using CourseService.Application.DTOs.Request;
 using CourseService.Application.DTOs.Response;
 using CourseService.Application.Extensions;
@@ -10,16 +5,19 @@ using CourseService.Application.Interfaces;
 using CourseService.Application.Utility;
 using CourseService.Domain.Entities;
 using CourseService.Domain.IUnitOfWork;
+using Microsoft.EntityFrameworkCore;
 
 namespace CourseService.Application.Features
 {
     public class SemestersService : ISemestersService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IStudentServiceClient _studentServiceClient;
 
-        public SemestersService(IUnitOfWork unitOfWork)
+        public SemestersService(IUnitOfWork unitOfWork, IStudentServiceClient studentServiceClient)
         {
             _unitOfWork = unitOfWork;
+            _studentServiceClient = studentServiceClient;
         }
 
         public async Task<ApiResponse<SemesterResponse>> CreateAsync(CreateSemesterRequest request)
@@ -81,25 +79,17 @@ namespace CourseService.Application.Features
             var semesters = await semesterQuery.Sort(query).Paging(query).ToListAsync();
             var responses = semesters.ToSemesterReponseList();
 
-            // Populate Student details in CourseResponse if needed
             var studentIds = responses
                 .Where(r => r.Courses != null)
                 .SelectMany(r => r.Courses!)
                 .Where(c => c.Enrollments != null)
                 .SelectMany(c => c.Enrollments)
-                .Select(e => e.EnrollmentId) // Wait, we need StudentIds from Course's DB enrollments, but responses.Courses has only EnrollmentInCourseResponse which does not have StudentId!
-                // Ah! We can collect StudentIds directly from the database entity list 'semesters'!
+                .Select(e => e.StudentId)
                 .ToList();
 
-            // Let's gather student IDs from Entity list
-            var dbStudentIds = semesters
-                .SelectMany(s => s.Courses)
-                .SelectMany(c => c.Enrollments)
-                .Select(e => e.Studentid)
-                .Distinct()
-                .ToList();
+            var students = await _studentServiceClient.GetStudentsByIdsAsync(studentIds);
+            var studentDict = students?.ToDictionary(s => s.StudentId) ?? new Dictionary<int, StudentInEnrollmentResponse>();
 
-            // Populate mock students (HTTP Client disconnected)
             foreach (var semResponse in responses)
             {
                 if (semResponse.Courses == null) continue;
@@ -108,14 +98,20 @@ namespace CourseService.Application.Features
                     var dbCourse = semesters.SelectMany(s => s.Courses).FirstOrDefault(c => c.Courseid == courseRes.CourseId);
                     if (dbCourse?.Enrollments != null)
                     {
+
                         courseRes.Students = dbCourse.Enrollments
-                            .Select(e => new StudentInCourseResponse
+                            .Select(e =>
                             {
-                                StudentId = e.Studentid,
-                                FullName = $"Mock Student {e.Studentid}",
-                                Email = $"mock{e.Studentid}@example.com"
-                            })
-                            .ToList();
+
+                                studentDict.TryGetValue(e.Studentid, out var student);
+                                return new StudentInCourseResponse
+                                {
+
+                                    StudentId = e.Studentid,
+                                    FullName = student.FullName,
+                                    Email = student.Email
+                                };
+                            }).ToList();
                     }
                 }
             }
@@ -151,30 +147,43 @@ namespace CourseService.Application.Features
 
             var response = semester.ToSemesterReponse();
 
-            // Populate Student details
-            var dbStudentIds = semester.Courses
-                .SelectMany(c => c.Enrollments)
-                .Select(e => e.Studentid)
-                .Distinct()
-                .ToList();
-
-            // Populate mock students (HTTP Client disconnected)
             foreach (var courseRes in response.Courses ?? new List<CourseResponse>())
             {
-                var dbCourse = semester.Courses.FirstOrDefault(c => c.Courseid == courseRes.CourseId);
-                if (dbCourse?.Enrollments != null)
+                var dbCourse = semester.Courses
+                    .FirstOrDefault(c => c.Courseid == courseRes.CourseId);
+
+                if (dbCourse?.Enrollments == null)
                 {
-                    courseRes.Students = dbCourse.Enrollments
-                        .Select(e => new StudentInCourseResponse
+                    continue;
+                }
+
+                courseRes.Students = new List<StudentInCourseResponse>();
+
+                foreach (var enrollment in dbCourse.Enrollments)
+                {
+                    try
+                    {
+                        var student = await _studentServiceClient
+                            .GetStudentByIdAsync(enrollment.Studentid);
+
+                        courseRes.Students.Add(new StudentInCourseResponse
                         {
-                            StudentId = e.Studentid,
-                            FullName = $"Mock Student {e.Studentid}",
-                            Email = $"mock{e.Studentid}@example.com"
-                        })
-                        .ToList();
+                            StudentId = student.StudentId,
+                            FullName = student.FullName,
+                            Email = student.Email
+                        });
+                    }
+                    catch
+                    {
+                        courseRes.Students.Add(new StudentInCourseResponse
+                        {
+                            StudentId = enrollment.Studentid,
+                            FullName = $"Unknown Student {enrollment.Studentid}",
+                            Email = string.Empty
+                        });
+                    }
                 }
             }
-
             return response;
         }
 

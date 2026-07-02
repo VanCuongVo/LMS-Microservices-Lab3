@@ -25,7 +25,8 @@ namespace CourseService.Application.Extensions
                     {
                         EnrollmentId = e.Enrollmentid,
                         EnrollDate = e.Enrolldate,
-                        Status = e.Status
+                        Status = e.Status,
+                        StudentId = e.Studentid
                     }).ToList() ?? new List<EnrollmentInCourseResponse>(),
                     Students = new List<StudentInCourseResponse>() // populated by service layer if needed
                 }).ToList() ?? new List<CourseResponse>()

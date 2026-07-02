@@ -49,6 +49,7 @@ namespace CourseService.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] CreateCourseRequest request)
         {
@@ -59,6 +60,7 @@ namespace CourseService.API.Controllers
                 result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult> Update(int id, [FromBody] UpdateCourseRequest request)
         {

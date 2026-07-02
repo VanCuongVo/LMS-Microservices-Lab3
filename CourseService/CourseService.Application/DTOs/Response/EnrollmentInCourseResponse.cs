@@ -8,5 +8,6 @@ namespace CourseService.Application.DTOs.Response
         public int EnrollmentId { get; set; }
         public DateTime EnrollDate { get; set; }
         public EnrollmentStatus Status { get; set; }
+        public int StudentId { get; set; }
     }
 }
