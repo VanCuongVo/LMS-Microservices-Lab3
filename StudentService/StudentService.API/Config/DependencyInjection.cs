@@ -16,6 +16,8 @@ namespace StudentService.API.Config
             services.AddScoped<IStudentService, Application.Features.StudentService>();
             services.AddGrpc();
 
+
+
             return services;
         }
     }

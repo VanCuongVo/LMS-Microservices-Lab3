@@ -1,0 +1,110 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: LMSDB
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d LMSDB" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  identityservice.api:
+    image: vancuong12082004/identityservice.api:latest
+    build:
+      context: ./IdentityService
+      dockerfile: IdentityService.API/Dockerfile
+    container_name: identityservice.api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: >
+        Host=postgres; Port=5432; Database=IdentityDB; Username=postgres; Password=12345; Include Error Detail=true
+    ports:
+      - "5045:8080"
+    networks:
+      - backend
+
+  courseservice.api:
+    image: vancuong12082004/courseservice.api:latest
+    build:
+      context: ./CourseService
+      dockerfile: CourseService.API/Dockerfile
+    container_name: courseservice.api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Services__StudentServiceUrl: http://studentservice.api:8080
+      ConnectionStrings__DefaultConnection: "Host=postgres; Port=5432; Database=CourseDB; Username=postgres; Password=12345; Include Error Detail=true"
+    ports:
+      - "5052:8080"
+    networks:
+      - backend
+
+  studentservice.api:
+    image: vancuong12082004/studentservice.api:latest
+    build:
+      context: ./StudentService
+      dockerfile: StudentService.API/Dockerfile
+    container_name: studentservice.api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Services__CourseServiceUrl: http://courseservice.api:8080
+      ConnectionStrings__DefaultConnection: "Host=postgres; Port=5432; Database=StudentDB; Username=postgres; Password=12345; Include Error Detail=true"
+    ports:
+      - "5051:8080"
+    networks:
+      - backend
+
+  apigateway:
+    image: vancuong12082004/apigateway:latest
+    build:
+      context: .
+      dockerfile: ApiGateway/Dockerfile
+    container_name: apigateway
+    restart: unless-stopped
+    depends_on:
+      - identityservice.api
+      - courseservice.api
+      - studentservice.api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Override the YARP cluster destinations to point to the docker container names
+      ReverseProxy__Clusters__identity-cluster__Destinations__http__Address: http://identityservice.api:8080
+      ReverseProxy__Clusters__identity-cluster__Destinations__https__Address: http://identityservice.api:8080
+      ReverseProxy__Clusters__student-cluster__Destinations__http__Address: http://studentservice.api:8080
+      ReverseProxy__Clusters__student-cluster__Destinations__https__Address: http://studentservice.api:8080
+      ReverseProxy__Clusters__course-cluster__Destinations__http__Address: http://courseservice.api:8080
+      ReverseProxy__Clusters__course-cluster__Destinations__https__Address: http://courseservice.api:8080
+    ports:
+      - "5016:8080"
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+
+networks:
+  backend:

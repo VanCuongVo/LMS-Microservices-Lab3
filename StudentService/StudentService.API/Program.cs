@@ -4,6 +4,14 @@ using StudentService.Persistence.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(8080, o =>
+    {
+        o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+    });
+});
+
 // Add services to the container.
 builder.Services.AddDependencyInjection();
 builder.Services.AddDatabase(builder.Configuration);
